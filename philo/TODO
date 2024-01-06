@@ -1,0 +1,94 @@
+------------------------------------PHILO TODO------------------------------------------------------
+
+√ Input_check:
+	- argc = 6 || 5 (if 6 theres a max number of times to eat then end the program); @done
+	- Input must be only numbers; @done
+	- Max number of philos is 200; @done
+	- if num_philos <= 0  || > 200 --> Error; @done
+	- if death_time < 0 --> Error; @done
+	- if eat_time < 0 --> Error; @done
+	- if sleep_time < 0 --> Error; @done
+	- ./philo num_philos time_to_die time_eating time_sleeping times_to_eat[optional];@done
+
+√ Structures: 
+	√ Single Philo :
+		- thread: philo thread;@done
+		- int: Philo number/ID;@done
+		- int: N of times philo ate;@done
+		- int: status (Thinking | Eating | Waiting | finished);@done
+		- int: eating (0|1);@done
+		- time: time_to_die time the philo is expected to die;@done
+		- mutex: lock to sync access to this philo's data (not a pointer bc 1 philo and one only);@done
+		- mutex: *right_fork (pointer bc shared);@done
+		- mutex: *left_fork (pointer bc shared);@done
+		- data: shared data struct (contains data shared with all philos, kinda the dining table);@done
+	√ Shared Info:
+			- thread*: array of threads each is a philo;@done
+			- int: number of philos;@done
+			- int: meals each philo must eat to end;@done
+			- int: dead (0|1) (shows if ANY philo has died);@done
+			- int: finished (shows number of philos who ate max times);@done
+			- philos*: Array of philos;@done
+			- time: death_time -> time first philo died;@done
+			- time: eat_time -> time required for 1 philo to finish eating;@done
+			- time: sleep_time -> time req for 1 philo to sleep;@done
+			- time: start_time -> time when the program started;@done
+			- mutex*: array of mutexes for forks used by philos;@done
+			- mutex: lock to sync access to shared data;@done
+			- mutex: console to sync access to terminal so output is not mixed;@done
+
+√ Init:
+	- Create struct variables;@done
+	- Allocate all structs;@done
+	- Init all mutexes with pthread_mutex_init();@done
+	- Start thread with pthread_create(&thread_id, NULL, &routine, &data_pointer);@done
+		- &thread_id: pointer to the thread id variables;@done
+		- routine: pointer to the function that is gonna be executed in the thread (must be void *);@done
+		- data: pointer to the data we give to the routine function;@done
+
+√ Routine:
+	- The funciton executed over and over by the philos@done
+	- While (! dead_philo || All philos ate max times)@done
+			- Think (philo)@done
+				- Philo thinks when he cannot eat@done
+					- Print("Philo x is thinking");@done
+			- Eat (philo)@done
+				- Picking up the forks@done
+					- locks right_fork mutex with pthread_mutex_lock();@done
+					- locks left_fork mutex with pthread_mutex_lock();@done
+				- Eating;@done
+					- Update philo status to eating;@done
+					- usleep (recoded);@done
+					- Update philo status to sleeping?@done
+				- Dropping the forks;@done
+					- unlocks right_fork mutex with pthread_mutex_unlock();@done
+					- unlocks left_fork mutex with pthread_mutex_unlock();@done
+			- Sleep (philo)@done
+				- usleep (recoded);@done
+
+√ Supervisor:
+	- A thread that checks if current_time - last_time_a_philo_ate > time_to_die;@done
+	- Checks if the time a philo should die his status == eating -> Let him live;@done
+	- Checks if times_philo_ate == max_times_to_eat -> Set status as finished;@done
+
+√ Monitor:
+	- Thread started before all the philos@done
+	- Only if we have a max_times_to_eat param aka if (argc == 6)@done
+	- Checks if all philos status == finished then stop all threads;@done
+
+- Cleaning_up:
+	- Join threads [after starting the philos];@done
+	- Using pthread_join() => Wait until the all threads terminate to continue the execution;@done
+	- After joining the threads -> Destroy all mutexes using pthread_mutex_destroy();@done
+	- free_all();@done
+	- Error function that frees and closes whatever when there's an error;@done
+
+- Error cases:
+	- Wrong number of arguments;@done
+	- Input contains non-number;@done
+	- Number of philos is more than 200 || 0;@done
+	- Input contains a negative number or 0;@done
+	- Mutex init error;@done
+	- Allocation error;@done
+	- Thread creation error;@done
+	- Thread join error;@done
